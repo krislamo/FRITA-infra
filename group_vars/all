@@ -1,0 +1,21 @@
+### WordPress Configuration ###
+
+# Domain
+wp_domain: www.freeitathens.org
+wp_admin_email: contact@freeitathens.org
+
+# Version of WordPress to deploy
+wp_version: 5.0.2
+wp_sha1_hash: 4a6971d35eb92e2fc30034141b1c865e8c156add
+
+# WordPress Home Directory
+# Note: value is a directory is without trailing '/'
+wp_dir: /var/www/wordpress
+
+# Database Settings
+wp_db_host: localhost
+wp_db_name: wordpress
+wp_db_user: wordpress_user
+wp_db_pass: Password1
+wp_db_table_prefix: wp_
+
