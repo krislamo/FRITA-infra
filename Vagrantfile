@@ -21,6 +21,9 @@ Vagrant.configure("2") do |config|
   config.vm.box = "debian/stretch64"
   config.vm.synced_folder ".", "/vagrant", disabled: true
 
+  # Set static IP
+  config.vm.network "private_network", ip: "192.168.121.2"
+
   # Machine Name
   config.vm.define :frita do |frita| #
   end
@@ -36,14 +39,5 @@ Vagrant.configure("2") do |config|
     ansible.playbook = "site.yml"
   end
 
-  # Display IP below
-  config.vm.provision "shell" do |s|
-    s.inline =  "
-      ip a | grep 192.168 |
-      awk '{
-        print substr($2, 1, index($2,\"/\") - 1);
-      }'
-    "
-  end
-
 end
+

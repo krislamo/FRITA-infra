@@ -1,3 +1,6 @@
 # Vagrant files
 .vagrant
 
+# Unneeded ansible file
+*.retry
+

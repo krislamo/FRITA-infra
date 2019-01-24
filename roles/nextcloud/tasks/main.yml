@@ -1,0 +1,134 @@
+# Copyright (C) 2019  Free I.T. Athens
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# psycopg2 is required for database tasks
+- name: Install PostgreSQL Support for Python
+  apt: name=python-psycopg2 state=present
+
+- name: Install PostgreSQL
+  apt: name=postgresql state=present
+
+- name: Create Database
+  postgresql_db:
+    name: "{{ nc_db_name }}"
+    state: present
+  become_user: postgres
+
+- name: Create Database User
+  postgresql_user:
+    user: "{{ nc_db_user }}"
+    password: "{{ nc_db_pass }}"
+    db: "{{ nc_db_name }}"
+    state: present
+  become_user: postgres
+
+- name: Add Database User Permissions
+  postgresql_privs:
+    db: "{{ nc_db_name }}"
+    role: "{{ nc_db_user }}"
+    objs: ALL_IN_SCHEMA
+    privs: SELECT,INSERT,UPDATE,DELETE
+  become_user: postgres
+
+- name: Install PHP Modules
+  apt:
+    name: [
+            # Required
+            'php-ctype', 'php-curl', 'php-dom',
+            'php-gd', 'php-iconv', 'php-json', 'php-xml',
+            'php-mbstring', 'php-posix', 'php-simplexml',
+            'php-xmlreader', 'php-xmlwriter', 'php-zip',
+
+            # Database Connectors
+            'php-pgsql',
+
+            # Recommended Packages
+            'php-fileinfo', 'php-bz2', 'php-intl',
+
+            # Enhanced Performance
+            'php-redis', 'redis-server',
+
+            # Preview Generation
+            'php-imagick'
+          ]
+    state: present
+  notify: Reload Apache2
+
+- name: Create Public HTML Directory
+  file:
+    path: "{{ nc_dir }}/public_html"
+    state: directory
+
+- name: Create Nextcloud Directories
+  file:
+    path: "{{ nc_dir }}/public_html/data"
+    state: directory
+    owner: www-data
+    group: www-data
+
+- name: Create Logs Directory
+  file:
+    path: "{{ nc_dir }}/logs"
+    state: directory
+
+- name: Download Nextcloud
+  get_url:
+    url: "https://download.nextcloud.com/server/releases/\
+          nextcloud-{{ nc_version }}.tar.bz2"
+    dest: /tmp/nextcloud-{{ nc_version }}.tar.bz2
+    checksum: sha256:{{ nc_sha256_hash }}
+
+- name: Extract Nextcloud
+  unarchive:
+    src: /tmp/nextcloud-{{ nc_version }}.tar.bz2
+    dest: "{{ nc_dir }}/public_html"
+    owner: www-data
+    group: www-data
+    extra_opts: [--strip-components=1]
+    remote_src: yes
+
+- name: Install Nextcloud
+  command: |
+    php occ maintenance:install --database pgsql \
+    --database-name {{ nc_db_name }} --database-host {{ nc_db_host }} \
+    --database-user {{ nc_db_user }} --database-pass {{ nc_db_pass }} \
+    --admin-user {{ nc_admin }} --admin-pass {{ nc_admin_pass }} \
+    --data-dir {{ nc_dir }}/public_html/data
+  become_user: www-data
+  args:
+    chdir: "{{ nc_dir }}/public_html"
+    creates: "{{ nc_dir }}/public_html/config/config.php"
+
+- name: Add Domain Name to Trusted Domains
+  command: |
+    php occ config:system:set trusted_domains 0 --value={{ nc_domain }}
+  become_user: www-data
+  args:
+    chdir: "{{ nc_dir }}/public_html"
+
+- name: "Enable Apache2 Module: rewrite"
+  apache2_module: name=rewrite state=present
+
+- name: Apply Apache Configuration
+  template:
+    src: nextcloud.conf.j2
+    dest: /etc/apache2/sites-available/{{ nc_domain }}.conf
+  notify: Reload Apache2
+
+- name: Enable Apache Website
+  shell: a2ensite {{ nc_domain }}
+  args:
+    creates: /etc/apache2/sites-enabled/{{ nc_domain }}.conf
+  notify: Reload Apache2
+

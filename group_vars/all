@@ -9,13 +9,38 @@ wp_version: 5.0.2
 wp_sha1_hash: 4a6971d35eb92e2fc30034141b1c865e8c156add
 
 # WordPress Home Directory
-# Note: value is a directory is without trailing '/'
+# Note: value is a directory without trailing '/'
 wp_dir: /var/www/wordpress
 
-# Database Settings
+# WordPress Database Settings
 wp_db_host: localhost
 wp_db_name: wordpress
 wp_db_user: wordpress_user
 wp_db_pass: Password1
 wp_db_table_prefix: wp_
+
+
+### Nextcloud Configuration ###
+
+# Domain
+nc_domain: cloud.freeitathens.org
+nc_admin_email: contact@freeitathens.org
+
+# Version of Nextcloud to deploy
+nc_version: 15.0.2
+nc_sha256_hash: c1f4cc33e39994ddbe6777370b62c30b7ae52136a0530c0b9922770803ca0fea
+
+# Nextcloud Home Directory
+# Note: value is a directory without trailing '/'
+nc_dir: /var/www/nextcloud
+
+# Nextcloud Database Settings
+nc_db_host: localhost
+nc_db_name: nextcloud
+nc_db_user: nextcloud_user
+nc_db_pass: Password1
+
+# Nextcloud Admin
+nc_admin: admin
+nc_admin_pass: Password1
 
