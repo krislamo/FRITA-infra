@@ -8,4 +8,10 @@
 	CustomLog {{ wp_dir }}/logs/access.log combined
 </VirtualHost>
 
+<Directory {{ wp_dir }}/public_html>
+    Options Indexes FollowSymLinks
+    AllowOverride All
+    Require all granted
+</Directory>
+
 # vim: syntax=apache ts=4 sw=4 sts=4 sr noet

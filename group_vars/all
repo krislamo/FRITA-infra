@@ -5,8 +5,8 @@ wp_domain: www.freeitathens.org
 wp_admin_email: contact@freeitathens.org
 
 # Version of WordPress to deploy
-wp_version: 5.0.2
-wp_sha1_hash: 4a6971d35eb92e2fc30034141b1c865e8c156add
+wp_version: 5.1.1
+wp_sha1_hash: f1bff89cc360bf5ef7086594e8a9b68b4cbf2192
 
 # WordPress Home Directory
 # Note: value is a directory without trailing '/'
