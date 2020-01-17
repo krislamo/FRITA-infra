@@ -13,10 +13,11 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-- name: Install FRITA Infrastructure
+- name: Install FRITA Web Server
   hosts: all
   become: yes
   roles:
+    - ansible
     - webserver 
     - wordpress
     - nextcloud

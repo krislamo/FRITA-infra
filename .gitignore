@@ -4,3 +4,5 @@
 # Unneeded ansible file
 *.retry
 
+# Custom environments
+/environments/
