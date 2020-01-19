@@ -14,3 +14,9 @@
   apt:
     name: python-docker
     state: present
+
+- name: Create Ansible's temporary directory
+  file:
+    path: /root/.ansible/tmp
+    state: directory
+    mode: '0700'
