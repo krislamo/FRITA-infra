@@ -1,0 +1,111 @@
+- name: Install PostgreSQL
+  apt:
+    name: postgresql
+    state: present
+  become: yes
+
+- name: Install unzip
+  apt:
+    name: unzip
+    state: present
+  become: yes
+
+- name: Install PHP Modules
+  apt:
+    name: [
+            # Required
+            'php-bcmath', 'php-mbstring', 'php-soap',
+            'php-gd', 'php-xml', 'php-curl', 'php-zip',
+
+            # Database Connectors
+            'php-pgsql',
+          ]
+    state: present
+  notify: Reload Apache2
+
+- name: Download and extract Timetrex
+  unarchive:
+    src: "https://www.timetrex.com/direct_download/\
+          TimeTrex_Community_Edition-manual-installer.zip"
+    dest: /var/www
+    creates: "{{ tx_dir }}"
+    remote_src: yes
+  become: yes
+
+- name: Create Timetrex directory
+  file:
+    path: "{{ tx_dir }}"
+    state: directory
+
+- name: Move Timetrex directory
+  shell: mv /var/www/TimeTrex_Community_Edition_* {{ tx_dir }}/public_html
+  args:
+    creates: "{{ tx_dir }}/public_html"
+
+- name: Apply Timetrex directory permissions
+  file:
+    path: "{{ tx_dir }}/public_html"
+    owner: www-data
+    group: www-data
+    state: directory
+    recurse: yes
+
+- name: Create Timetrex directory
+  file:
+    path: /var/timetrex
+    group: www-data
+    mode: '0775'
+    state: directory
+    recurse: yes
+
+- name: Create another Timetrex directory
+  file:
+    path: /var/timetrex/storage
+    group: www-data
+    mode: '0775'
+    state: directory
+    recurse: yes
+
+- name: Create Timetrex log directory
+  file:
+    path: /var/log/timetrex
+    group: www-data
+    mode: '0775'
+    state: directory
+    recurse: yes
+
+- name: Apply Timetrex Configuration
+  template:
+    src: timetrex.ini.php.j2
+    dest: "{{ tx_dir }}/public_html/timetrex.ini.php"
+
+- name: Create Timetrex log directory
+  file:
+    path: "/var/log/apache2/{{ tx_domain }}"
+    state: directory
+
+- name: Create Timetrex database
+  postgresql_db:
+    name: "{{ tx_db_name }}"
+  become: yes
+  become_user: postgres
+
+- name: Create Timetrex database user
+  postgresql_user:
+    db: "{{ tx_db_name }}"
+    name: "{{ tx_db_user }}"
+    password: "{{ tx_db_pass }}"
+  become: yes
+  become_user: postgres
+
+- name: Apply Apache Configuration
+  template:
+    src: timetrex.conf.j2
+    dest: /etc/apache2/sites-available/{{ tx_domain }}.conf
+  notify: Reload Apache2
+
+- name: Enable Apache Website
+  shell: a2ensite {{ tx_domain }}
+  args:
+    creates: /etc/apache2/sites-enabled/{{ tx_domain }}.conf
+  notify: Reload Apache2

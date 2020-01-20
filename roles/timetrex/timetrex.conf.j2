@@ -1,0 +1,17 @@
+<VirtualHost *:80>
+  ServerName {{ tx_domain }}
+
+  ServerAdmin {{ tx_admin_email }}
+  DocumentRoot {{ tx_dir }}/public_html
+
+  ErrorLog /var/log/apache2/{{ tx_domain }}/error.log
+  CustomLog /var/log/apache2/{{ tx_domain }}/access.log combined
+</VirtualHost>
+
+<Directory {{ tx_dir }}/public_html>
+  Options Indexes FollowSymLinks
+  AllowOverride All
+  Require all granted
+</Directory>
+
+# vim: syntax=apache ts=4 sw=4 sts=4 sr noet
