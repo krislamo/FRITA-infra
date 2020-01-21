@@ -1,3 +1,8 @@
+- name: Install PostgreSQL Support for Python
+  apt:
+    name: python-psycopg2
+    state: present
+
 - name: Install PostgreSQL
   apt:
     name: postgresql

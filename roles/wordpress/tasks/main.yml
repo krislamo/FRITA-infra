@@ -15,16 +15,18 @@
 
 # PyMySQL or MySQL-python is required for database tasks
 - name: Install MySQL Support for Python
-  apt: name=python-pymysql state=present
+  apt:
+    name: python-pymysql
+    state: present
 
 - name: Create Database
-  mysql_db: 
+  mysql_db:
     name: "{{ wp_db_name }}"
     state: present
     login_unix_socket: /var/run/mysqld/mysqld.sock
 
 - name: Create Database User
-  mysql_user: 
+  mysql_user:
     name: "{{ wp_db_user }}"
     password: "{{ wp_db_pass }}"
     priv: "{{ wp_db_name }}.*:ALL,GRANT"
@@ -57,7 +59,7 @@
     remote_src: yes
 
 - name: Generate Keys and Salts
-  get_url: 
+  get_url:
     url: https://api.wordpress.org/secret-key/1.1/salt/
     dest: "{{ wp_dir }}/salts.txt"
 
