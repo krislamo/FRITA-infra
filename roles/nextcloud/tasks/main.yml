@@ -96,6 +96,7 @@
     --admin-user {{ nc_admin }} --admin-pass {{ nc_admin_pass }} \
     --data-dir {{ nc_dir }}/public_html/data
   become_user: www-data
+  register: nextcloud_install
   args:
     chdir: "{{ nc_dir }}/public_html"
     creates: "{{ nc_dir }}/public_html/config/config.php"
@@ -106,6 +107,7 @@
   become_user: www-data
   args:
     chdir: "{{ nc_dir }}/public_html"
+  when: nextcloud_install.changed
 
 - name: "Enable Apache2 Module: rewrite"
   apache2_module: name=rewrite state=present

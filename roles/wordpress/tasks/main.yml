@@ -58,10 +58,16 @@
     group: "www-data"
     remote_src: yes
 
+- name: Stat WordPress Salts
+  stat:
+    path: "{{ wp_dir }}/salts.txt"
+  register: salts
+
 - name: Generate Keys and Salts
   get_url:
     url: https://api.wordpress.org/secret-key/1.1/salt/
     dest: "{{ wp_dir }}/salts.txt"
+  when: not salts.stat.exists
 
 - name: Grab Keys and Salts
   slurp: src="{{ wp_dir }}/salts.txt"
