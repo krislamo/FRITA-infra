@@ -101,6 +101,13 @@
     chdir: "{{ nc_dir }}/public_html"
     creates: "{{ nc_dir }}/public_html/config/config.php"
 
+- name: Add Missing Database Indexes
+  command: php occ db:add-missing-indices
+  become_user: www-data
+  args:
+    chdir: "{{ nc_dir }}/public_html"
+  when: nextcloud_install.changed
+
 - name: Add Domain Name to Trusted Domains
   command: |
     php occ config:system:set trusted_domains 0 --value={{ nc_domain }}
