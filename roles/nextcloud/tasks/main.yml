@@ -104,9 +104,17 @@
 - name: Add Missing Database Indexes
   command: php occ db:add-missing-indices
   become_user: www-data
+  register: nextcloud_db_update
   args:
     chdir: "{{ nc_dir }}/public_html"
   when: nextcloud_install.changed
+
+- name: Convert Database Columns to BIGINT
+  command: php occ db:convert-filecache-bigint
+  become_user: www-data
+  args:
+    chdir: "{{ nc_dir }}/public_html"
+  when: nextcloud_db_update.changed
 
 - name: Add Domain Name to Trusted Domains
   command: |
