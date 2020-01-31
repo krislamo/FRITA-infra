@@ -4,6 +4,18 @@
   ServerAdmin {{ mw_admin_email }}
   DocumentRoot {{ mw_dir }}/public_html
 
+  RewriteEngine On
+  RewriteRule ^/?wiki(/.*)?$ %{DOCUMENT_ROOT}/w/index.php [L]
+  RewriteRule ^/?$ %{DOCUMENT_ROOT}/w/index.php [L]
+
+  RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} !-f
+  RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} !-d
+  RewriteRule ^/?w/images/thumb/[0-9a-f]/[0-9a-f][0-9a-f]/([^/]+)/([0-9]+)px-.*$ %{DOCUMENT_ROOT}/w/thumb.php?f=$1&width=$2 [L,QSA,B]
+
+  RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} !-f
+  RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} !-d
+  RewriteRule ^/?w/images/thumb/archive/[0-9a-f]/[0-9a-f][0-9a-f]/([^/]+)/([0-9]+)px-.*$ %{DOCUMENT_ROOT}/w/thumb.php?f=$1&width=$2&archived=1 [L,QSA,B]
+
   ErrorLog {{ mw_dir }}/logs/error.log
   CustomLog {{ mw_dir }}/logs/access.log combined
 </VirtualHost>
