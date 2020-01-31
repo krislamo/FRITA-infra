@@ -19,7 +19,7 @@
   roles:
     - ansible
     - webserver
-    - wordpress
-    - nextcloud
-    - timetrex
+    #- wordpress
+    #- nextcloud
+    #- timetrex
     - mediawiki

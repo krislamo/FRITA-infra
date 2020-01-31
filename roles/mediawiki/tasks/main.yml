@@ -17,9 +17,21 @@
     state: present
     login_unix_socket: /var/run/mysqld/mysqld.sock
 
+- name: Install PHP Modules
+  apt:
+    name: ['php-xml', 'php-mbstring']
+    state: present
+  notify: Reload Apache2
+
 - name: Create Public HTML Directory
   file:
     path: "{{ mw_dir }}/public_html"
+    state: directory
+
+# https://www.mediawiki.org/wiki/Manual:Short_URL#Moving_a_wiki_from_/wiki_to_/w
+- name: Create Directory /w for Short URLs
+  file:
+    path: "{{ mw_dir }}/public_html/w"
     state: directory
 
 - name: Create Logs Directory
@@ -37,11 +49,33 @@
 - name: Extract MediaWiki
   unarchive:
     src: /tmp/mediawiki-{{ mw_version }}.tar.gz
-    dest: "{{ mw_dir }}/public_html"
+    dest: "{{ mw_dir }}/public_html/w"
     owner: www-data
     group: www-data
     extra_opts: [--strip-components=1]
     remote_src: yes
+
+- name: Install MediaWiki
+  command: |
+    php maintenance/install.php --server="http://{{ mw_domain }}/" \
+    --dbname="{{ mw_db_name }}" --dbuser="{{ mw_db_user }}" \
+    --dbpass="{{ mw_db_pass }}" --pass="{{ mw_admin_pass }}" \
+    --scriptpath="/w" "{{ mw_namespace }}" "{{ mw_admin }}"
+  args:
+    chdir: "{{ mw_dir }}/public_html/w"
+    creates: "{{ mw_dir }}/public_html/w/LocalSettings.php"
+
+- name: Set MediaWiki Article Path
+  lineinfile:
+    path: "{{ mw_dir }}/public_html/w/LocalSettings.php"
+    regexp: '^\$wgArticlePath'
+    insertafter: '^\$wgScriptPath'
+    line: '$wgArticlePath = "/wiki/$1";'
+
+- name: "Enable Apache Module: rewrite"
+  apache2_module:
+    name: rewrite
+    state: present
 
 - name: Apply Apache Configuration
   template:

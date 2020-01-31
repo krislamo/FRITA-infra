@@ -4,6 +4,10 @@
   ServerAdmin {{ mw_admin_email }}
   DocumentRoot {{ mw_dir }}/public_html
 
+  RewriteEngine On
+  RewriteRule ^/?wiki(/.*)?$ %{DOCUMENT_ROOT}/w/index.php [L]
+  RewriteRule ^/?$ %{DOCUMENT_ROOT}/w/index.php [L]
+
   ErrorLog {{ mw_dir }}/logs/error.log
   CustomLog {{ mw_dir }}/logs/access.log combined
 </VirtualHost>
