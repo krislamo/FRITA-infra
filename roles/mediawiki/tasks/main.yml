@@ -1,0 +1,56 @@
+- name: Install MySQL Support for Python
+  apt:
+    name: python-pymysql
+    state: present
+
+- name: Create Database
+  mysql_db:
+    name: "{{ mw_db_name }}"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create Database User
+  mysql_user:
+    name: "{{ mw_db_user }}"
+    password: "{{ mw_db_pass }}"
+    priv: "{{ mw_db_name }}.*:ALL,GRANT"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create Public HTML Directory
+  file:
+    path: "{{ mw_dir }}/public_html"
+    state: directory
+
+- name: Create Logs Directory
+  file:
+    path: "{{ mw_dir }}/logs"
+    state: directory
+
+- name: Download MediaWiki
+  get_url:
+    url: "https://releases.wikimedia.org/mediawiki/\
+          {{ mw_version | regex_replace('\\.\\d+$', '') }}/\
+          mediawiki-{{ mw_version }}.tar.gz"
+    dest: /tmp/mediawiki-{{ mw_version }}.tar.gz
+
+- name: Extract MediaWiki
+  unarchive:
+    src: /tmp/mediawiki-{{ mw_version }}.tar.gz
+    dest: "{{ mw_dir }}/public_html"
+    owner: www-data
+    group: www-data
+    extra_opts: [--strip-components=1]
+    remote_src: yes
+
+- name: Apply Apache Configuration
+  template:
+    src: mediawiki.conf.j2
+    dest: /etc/apache2/sites-available/{{ mw_domain }}.conf
+  notify: Reload Apache2
+
+- name: Enable Apache Website
+  shell: a2ensite {{ mw_domain }}
+  args:
+    creates: /etc/apache2/sites-enabled/{{ mw_domain }}.conf
+  notify: Reload Apache2

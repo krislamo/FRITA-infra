@@ -1,0 +1,11 @@
+<VirtualHost *:80>
+  ServerName {{ mw_domain }}
+
+  ServerAdmin {{ mw_admin_email }}
+  DocumentRoot {{ mw_dir }}/public_html
+
+  ErrorLog {{ mw_dir }}/logs/error.log
+  CustomLog {{ mw_dir }}/logs/access.log combined
+</VirtualHost>
+
+# vim: syntax=apache ts=4 sw=4 sts=4 sr noet
