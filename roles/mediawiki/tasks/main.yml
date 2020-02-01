@@ -57,9 +57,9 @@
 
 - name: Install MediaWiki
   command: |
-    php maintenance/install.php --dbname {{ mw_db_name }} \
-    --installdbuser {{ mw_db_user }} --installdbpass {{ mw_db_pass }} \
-    --pass {{ mw_root_pass }} FRITA admin
+    php maintenance/install.php --dbname="{{ mw_db_name }}" \
+    --dbuser="{{ mw_db_user }}" --dbpass="{{ mw_db_pass }}" \
+    --pass="{{ mw_admin_pass }}" "{{ mw_namespace }}" admin
   args:
     chdir: "{{ mw_dir }}/public_html/w"
     creates: "{{ mw_dir }}/public_html/w/LocalSettings.php"
