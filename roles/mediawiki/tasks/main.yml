@@ -17,6 +17,12 @@
     state: present
     login_unix_socket: /var/run/mysqld/mysqld.sock
 
+- name: Install PHP Modules
+  apt:
+    name: ['php-xml', 'php-mbstring']
+    state: present
+  notify: Reload Apache2
+
 - name: Create Public HTML Directory
   file:
     path: "{{ mw_dir }}/public_html"
@@ -49,19 +55,19 @@
     extra_opts: [--strip-components=1]
     remote_src: yes
 
-#- name: Apply LocalSettings.php
-#  template:
-#    src: LocalSettings.php.j2
-#    dest: "{{ mw_dir }}/public_html/w/LocalSettings.php"i
-
 - name: Install MediaWiki
   command: |
-    php maintenance/install.sh --dbname {{ mw_db_name }} \
+    php maintenance/install.php --dbname {{ mw_db_name }} \
     --installdbuser {{ mw_db_user }} --installdbpass {{ mw_db_pass }} \
     --pass {{ mw_root_pass }} FRITA admin
   args:
     chdir: "{{ mw_dir }}/public_html/w"
     creates: "{{ mw_dir }}/public_html/w/LocalSettings.php"
+
+- name: "Enable Apache Module: rewrite"
+  apache2_module:
+    name: rewrite
+    state: present
 
 - name: Apply Apache Configuration
   template:
