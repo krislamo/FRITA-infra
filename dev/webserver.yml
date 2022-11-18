@@ -1,6 +1,8 @@
 - name: Install FRITA Web Server
   hosts: all
   become: true
+  vars_files:
+    - vars/webserver.yml
   roles:
     - docker
     - webserver

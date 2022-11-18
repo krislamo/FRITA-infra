@@ -1,28 +1,24 @@
-# Copyright (C) 2019  Free I.T. Athens
-# 
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-
 # vi: set ft=ruby :
 
+# Set PLAYBOOK shell var for ./dev/playbook.yml
+PLAYBOOK=ENV["PLAYBOOK"]
+if !PLAYBOOK
+  if File.exist?('.playbook')
+    PLAYBOOK = IO.read('.playbook').split("\n")[0]
+  end
+
+  if !PLAYBOOK || PLAYBOOK.empty?
+    PLAYBOOK = "webserver"
+  end
+else
+  File.write(".playbook", PLAYBOOK)
+end
+
+# Debian 11
 Vagrant.configure("2") do |config|
-
-  # Debian Stable box
-  config.vm.box = "debian/stretch64"
+  config.vm.box = "debian/bullseye64"
   config.vm.synced_folder ".", "/vagrant", disabled: true
-
-  # Set static IP
-  config.vm.network "private_network", ip: "192.168.121.2"
+  config.vm.network "private_network", type: "dhcp"
 
   # Machine Name
   config.vm.define :frita do |frita| #
@@ -35,9 +31,9 @@ Vagrant.configure("2") do |config|
 
   # Provision with Ansible
   config.vm.provision "ansible" do |ansible|
+    ENV['ANSIBLE_ROLES_PATH'] = File.dirname(__FILE__) + "/roles"
     ansible.compatibility_mode = "2.0"
-    ansible.playbook = "site.yml"
+    ansible.playbook = "dev/" + PLAYBOOK + ".yml"
   end
 
 end
-

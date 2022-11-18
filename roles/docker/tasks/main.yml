@@ -1,0 +1,25 @@
+- name: Install Docker
+  ansible.builtin.apt:
+    name: ['docker.io', 'docker-compose']
+    state: present
+    update_cache: true
+
+- name: Create docker-compose root
+  ansible.builtin.file:
+    path: "{{ docker_compose_root }}"
+    state: directory
+    mode: 0600
+
+- name: Add users to docker group
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: docker
+    append: true
+  loop: "{{ docker_users }}"
+  when: docker_users is defined
+
+- name: Start Docker and enable on boot
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true

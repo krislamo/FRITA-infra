@@ -1,8 +1,4 @@
-# Vagrant files
+environments
+.playbook
 .vagrant
-
-# Unneeded ansible file
-*.retry
-
-# Custom environments
-/environments/
+.vscode

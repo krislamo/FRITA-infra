@@ -1,0 +1,5 @@
+docker_users:
+  - vagrant
+
+webserver_env:
+  TRAEFIK_DOMAIN: traefik.example.org
