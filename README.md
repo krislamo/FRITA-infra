@@ -1,15 +1,19 @@
 # Free I.T. Athen's Infrastructure
 This project is used to develop Ansible for deploying and maintaining websites
-and services operated by Free I.T. Athens.
+and services operated by Free I.T. Athens (FRITA).
 
-- Requires Ansible and Vagrant on the host
+- Requires GNU Make, Ansible, and Vagrant on the host
 
 ## Quick Start
 1. Clone this project
-2. Run `vagrant up` to provision a Debian 11 base box
+2. Run `make` to provision a Debian 11 base box
+3. Go to
+    - [Traefik Dashboard](https://traefik.local.freeitathens.org:8443/dashboard/#/)
+    - [WordPress](https://www.local.freeitathens.org)
+4. Click through the HTTPS security warning
 
 ## Authors
-* **Kris Lamoureux** - *Project Founder* - @[krislamo](https://github.com/krislamo)
+* **Kris Lamoureux** - *Project Founder* - [@krislamo](https://github.com/krislamo)
 
 ## Copyrights and Licenses
 Copyright (C) 2019, 2020, 2022  Free I.T. Athens

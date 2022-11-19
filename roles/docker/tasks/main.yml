@@ -2,7 +2,6 @@
   ansible.builtin.apt:
     name: ['docker.io', 'docker-compose']
     state: present
-    update_cache: true
 
 - name: Create docker-compose root
   ansible.builtin.file:

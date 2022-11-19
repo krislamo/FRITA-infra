@@ -1,4 +1,5 @@
 environments
+*.log
 .playbook
 .vagrant
 .vscode

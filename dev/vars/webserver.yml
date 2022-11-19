@@ -1,5 +1,43 @@
+###############
+### Secrets ###
+###############
+secret:
+  WORDPRESS_DB_PASSWORD: WPpa55w0rd!
+
+##############
+### Docker ###
+##############
 docker_users:
   - vagrant
 
-webserver_env:
-  TRAEFIK_DOMAIN: traefik.example.org
+################
+#### MariaDB ###
+################
+databases:
+  - name: wordpress
+    pass: "{{ secret.WORDPRESS_DB_PASSWORD }}"
+
+#######################
+### Webserver Stack ###
+#######################
+webserver:
+  ###############
+  ### Traefik ###
+  ###############
+  #TRAEFIK_VERSION: latest
+  #TRAEFIK_DOMAIN: traefik.local.freeitathens.org
+  #TRAEFIK_DASHBOARD: true
+  #TRAEFIK_EXPOSED_DEFAULT: false
+  #TRAEFIK_TRAEFIK_ENABLE: true
+  TRAEFIK_DEBUG: true
+
+  #################
+  ### WordPress ###
+  #################
+  #WORDPRESS_VERSION: latest
+  #WORDPRESS_DOMAIN: www.local.freeitathens.org
+  #WORDPRESS_DB_HOST: host.docker.internal
+  #WORDPRESS_DB_NAME: wordpress
+  #WORDPRESS_DB_USER: wordpress
+  #WORDPRESS_WEB_ENABLED: true
+  WORDPRESS_DB_PASSWORD: "{{ secret.WORDPRESS_DB_PASSWORD }}"

@@ -1,4 +1,4 @@
 # {{ ansible_managed }}
-{% for key, value in webserver_env.items() %}
+{% for key, value in webserver.items() %}
 {{ key }}={{ value }}
 {% endfor %}

@@ -4,5 +4,6 @@
   vars_files:
     - vars/webserver.yml
   roles:
+    - common
     - docker
     - webserver

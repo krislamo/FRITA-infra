@@ -1,5 +1,8 @@
 version: '3.5'
 
+volumes:
+  wordpress:
+
 networks:
   traefik:
     name: traefik
@@ -7,10 +10,12 @@ networks:
 services:
   traefik:
     image: traefik:${TRAEFIK_VERSION:-latest}
+    restart: always
     command:
       - --api.dashboard=${TRAEFIK_DASHBOARD:-true}
       - --api.debug=${TRAEFIK_DEBUG:-false}
       - --providers.docker=true
+      - --providers.docker.exposedbydefault=${TRAEFIK_EXPOSED_DEFAULT:-false}
       - --entrypoints.web.address=:80
       - --entrypoints.web.http.redirections.entrypoint.to=websecure
       - --entrypoints.web.http.redirections.entrypoint.scheme=https
@@ -28,5 +33,28 @@ services:
       traefik.http.routers.api.entrypoints: local
       traefik.http.routers.api.service: api@internal
       traefik.http.routers.api.tls: true
+      traefik.enable: ${TRAEFIK_WEB_ENABLED:-true}
     networks:
       - traefik
+
+  wordpress:
+    image: wordpress:${WORDPRESS_VERSION:-latest}
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST:-host.docker.internal}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME-wordpress}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER:-wordpress}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+    labels:
+      traefik.http.routers.wordpress.rule: Host(`${WORDPRESS_DOMAIN:-www.local.freeitathens.org}`)
+      traefik.http.routers.wordpress.entrypoints: websecure
+      traefik.http.routers.wordpress.tls: true
+      traefik.http.services.wordpress.loadbalancer.server.port: 80
+      traefik.docker.network: traefik
+      traefik.enable: ${WORDPRESS_WEB_ENABLED:-true}
+    volumes:
+      - wordpress:/var/www/html
+    networks:
+      - traefik
+    extra_hosts:
+      - host.docker.internal:host-gateway

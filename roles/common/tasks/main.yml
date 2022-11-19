@@ -1,0 +1,30 @@
+- name: Create Ansible's temporary remote directory
+  ansible.builtin.file:
+    path: "~/.ansible/tmp"
+    state: directory
+    mode: 0700
+
+- name: Install the Uncomplicated Firewall
+  ansible.builtin.apt:
+    name: ufw
+    state: present
+    update_cache: true
+
+- name: Deny incoming traffic by default
+  community.general.ufw:
+    default: deny
+    direction: incoming
+
+- name: Allow outgoing traffic by default
+  community.general.ufw:
+    default: allow
+    direction: outgoing
+
+- name: Allow OpenSSH with rate limiting
+  community.general.ufw:
+    name: ssh
+    rule: limit
+
+- name: Enable firewall
+  community.general.ufw:
+    state: enabled

@@ -3,6 +3,37 @@
     name: mariadb-server
     state: present
 
+- name: Change the bind-address to allow Docker
+  ansible.builtin.lineinfile:
+    path: /etc/mysql/mariadb.conf.d/50-server.cnf
+    regex: "^bind-address"
+    line: "bind-address            = 0.0.0.0"
+  notify: restart_mariadb
+
+- name: Install MySQL Support for Python 3
+  ansible.builtin.apt:
+    name: python3-pymysql
+    state: present
+
+- name: Create MariaDB databases
+  community.mysql.mysql_db:
+    name: "{{ item.name }}"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  loop: "{{ databases }}"
+  no_log: "{{ item.pass is defined }}"
+
+- name: Create MariaDB users
+  community.mysql.mysql_user:
+    name: "{{ item.name }}"
+    password: "{{ item.pass }}"
+    host: '%'
+    state: present
+    priv: "{{ item.name }}.*:ALL"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  loop: "{{ databases }}"
+  no_log: "{{ item.pass is defined }}"
+
 - name: Create webserver docker-compose directory
   ansible.builtin.file:
     path: "{{ webserver_root }}"
@@ -22,3 +53,20 @@
     dest: "{{ webserver_root }}/.env"
     mode: 0600
   notify: composeup_webserver
+
+- name: Allow MariaDB database connections
+  community.general.ufw:
+    rule: allow
+    port: 3306
+    proto: tcp
+    src: "{{ item }}"
+  loop: "{{ mariadb_trust }}"
+
+- name: Add HTTP and HTTPS firewall rule
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - "80"
+    - "443"
