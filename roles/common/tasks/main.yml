@@ -4,6 +4,12 @@
     state: directory
     mode: 0700
 
+- name: Install useful software
+  apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: true
+
 - name: Install the Uncomplicated Firewall
   ansible.builtin.apt:
     name: ufw
