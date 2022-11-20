@@ -14,25 +14,38 @@ services:
     command:
       - --api.dashboard=${TRAEFIK_DASHBOARD:-true}
       - --api.debug=${TRAEFIK_DEBUG:-false}
+      - --log.level=${TRAEFIK_LOG_LEVEL:-ERROR}
       - --providers.docker=true
       - --providers.docker.exposedbydefault=${TRAEFIK_EXPOSED_DEFAULT:-false}
       - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.local.address=:8443
       - --entrypoints.web.http.redirections.entrypoint.to=websecure
       - --entrypoints.web.http.redirections.entrypoint.scheme=https
       - --entrypoints.web.http.redirections.entrypoint.permanent=true
-      - --entrypoints.websecure.address=:443
-      - --entrypoints.local.address=:8443
+      - --certificatesresolvers.letsencrypt.acme.email=${TRAEFIK_ACME_EMAIL}
+      - --certificatesresolvers.letsencrypt.acme.storage=/etc/letsencrypt/acme.json
+      - --certificatesresolvers.letsencrypt.acme.dnschallenge=true
+      - --certificatesresolvers.letsencrypt.acme.dnschallenge.provider=${TRAEFIK_ACME_PROVIDER}
+      - --certificatesresolvers.letsencrypt.acme.dnschallenge.delaybeforecheck=0
+      - --certificatesresolvers.letsencrypt.acme.caserver=${TRAEFIK_ACME_CASERVER:-https://acme-staging-v02.api.letsencrypt.org/directory}
+    environment:
+      DREAMHOST_API_KEY: ${TRAEFIK_DREAMHOST_APIKEY}
     ports:
       - 80:80
       - 443:443
       - "127.0.0.1:8443:8443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./.acme:/etc/letsencrypt
     labels:
       traefik.http.routers.api.rule: Host(`${TRAEFIK_DOMAIN:-traefik.local.freeitathens.org}`)
       traefik.http.routers.api.entrypoints: local
       traefik.http.routers.api.service: api@internal
       traefik.http.routers.api.tls: true
+      traefik.http.routers.api.tls.certresolver: letsencrypt
+      traefik.http.routers.api.tls.domains[0].main: ${TRAEFIK_ACME_DOMAIN_MAIN:-local.freeitathens.org}
+      traefik.http.routers.api.tls.domains[0].sans: "${TRAEFIK_ACME_DOMAIN_SANS:-*.local.freeitathens.org}"
       traefik.enable: ${TRAEFIK_WEB_ENABLED:-true}
     networks:
       - traefik
@@ -49,6 +62,9 @@ services:
       traefik.http.routers.wordpress.rule: Host(`${WORDPRESS_DOMAIN:-www.local.freeitathens.org}`)
       traefik.http.routers.wordpress.entrypoints: websecure
       traefik.http.routers.wordpress.tls: true
+      traefik.http.routers.wordpress.tls.certresolver: letsencrypt
+      traefik.http.routers.wordpress.tls.domains[0].main: ${TRAEFIK_ACME_DOMAIN_MAIN:-local.freeitathens.org}
+      traefik.http.routers.wordpress.tls.domains[0].sans: "${TRAEFIK_ACME_DOMAIN_SANS:-*.local.freeitathens.org}"
       traefik.http.services.wordpress.loadbalancer.server.port: 80
       traefik.docker.network: traefik
       traefik.enable: ${WORDPRESS_WEB_ENABLED:-true}

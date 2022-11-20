@@ -12,6 +12,16 @@ and services operated by Free I.T. Athens (FRITA).
     - [WordPress](https://www.local.freeitathens.org)
 4. Click through the HTTPS security warning
 
+## Production
+1. Clone [production-env](https://github.com/freeitathens/production-env/) to `./environments`
+2. Run `./scripts/vault-key.sh` from the root of the project to obtain the Ansible Vault password
+3. Enter the Bitwarden Master Password
+4. Run `ansible-playbook` against the production servers, e.g.,
+    ```
+    ansible-playbook -u root -i environments/production --vault-pass-file ./.ansible_vault webserver.yml --check
+    ```
+5. Delete the `.ansible_vault` file when you are done
+
 ## Authors
 * **Kris Lamoureux** - *Project Founder* - [@krislamo](https://github.com/krislamo)
 

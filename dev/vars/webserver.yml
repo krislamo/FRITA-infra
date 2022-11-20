@@ -25,11 +25,15 @@ webserver:
   ### Traefik ###
   ###############
   #TRAEFIK_VERSION: latest
+  #TRAEFIK_ROOT_DOMAIN: local.freeitathens.org
   #TRAEFIK_DOMAIN: traefik.local.freeitathens.org
   #TRAEFIK_DASHBOARD: true
   #TRAEFIK_EXPOSED_DEFAULT: false
-  #TRAEFIK_TRAEFIK_ENABLE: true
+  #TRAEFIK_WEB_ENABLED: true
   TRAEFIK_DEBUG: true
+  TRAEFIK_ACME_PROVIDER: dreamhost
+  TRAEFIK_ACME_CASERVER: https://acme-v02.api.letsencrypt.org/directory
+  TRAEFIK_ACME_EMAIL: frita@example.org
 
   #################
   ### WordPress ###
@@ -39,5 +43,4 @@ webserver:
   #WORDPRESS_DB_HOST: host.docker.internal
   #WORDPRESS_DB_NAME: wordpress
   #WORDPRESS_DB_USER: wordpress
-  #WORDPRESS_WEB_ENABLED: true
   WORDPRESS_DB_PASSWORD: "{{ secret.WORDPRESS_DB_PASSWORD }}"
