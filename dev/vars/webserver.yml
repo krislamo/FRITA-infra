@@ -3,6 +3,7 @@
 ###############
 secret:
   WORDPRESS_DB_PASSWORD: WPpa55w0rd!
+  TRAEFIK_DREAMHOST_APIKEY: DHap1pa55w0rd!
 
 ##############
 ### Docker ###
@@ -32,8 +33,9 @@ webserver:
   #TRAEFIK_WEB_ENABLED: true
   TRAEFIK_DEBUG: true
   TRAEFIK_ACME_PROVIDER: dreamhost
-  TRAEFIK_ACME_CASERVER: https://acme-v02.api.letsencrypt.org/directory
+  TRAEFIK_ACME_CASERVER: https://localhost/directory
   TRAEFIK_ACME_EMAIL: frita@example.org
+  TRAEFIK_DREAMHOST_APIKEY: "{{ secret.TRAEFIK_DREAMHOST_APIKEY }}"
 
   #################
   ### WordPress ###
