@@ -2,6 +2,7 @@ version: '3.5'
 
 volumes:
   wordpress:
+  nextcloud:
 
 networks:
   traefik:
@@ -26,7 +27,7 @@ services:
       - --certificatesresolvers.letsencrypt.acme.email=${TRAEFIK_ACME_EMAIL}
       - --certificatesresolvers.letsencrypt.acme.storage=/etc/letsencrypt/acme.json
       - --certificatesresolvers.letsencrypt.acme.dnschallenge=true
-      - --certificatesresolvers.letsencrypt.acme.dnschallenge.provider=${TRAEFIK_ACME_PROVIDER}
+      - --certificatesresolvers.letsencrypt.acme.dnschallenge.provider=${TRAEFIK_ACME_PROVIDER:-manual}
       - --certificatesresolvers.letsencrypt.acme.dnschallenge.delaybeforecheck=0
       - --certificatesresolvers.letsencrypt.acme.caserver=${TRAEFIK_ACME_CASERVER:-https://acme-staging-v02.api.letsencrypt.org/directory}
     environment:
@@ -74,6 +75,35 @@ services:
       traefik.enable: ${WORDPRESS_WEB_ENABLED:-true}
     volumes:
       - wordpress:/var/www/html
+    networks:
+      - traefik
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+  nextcloud:
+    image: nextcloud:${NEXTCLOUD_VERSION:-stable}
+    restart: always
+    environment:
+      MYSQL_HOST: ${NEXTCLOUD_MYSQL_HOST:-host.docker.internal:3306}
+      MYSQL_DATABASE: ${NEXTCLOUD_MYSQL_DATABASE-nextcloud}
+      MYSQL_USER: ${NEXTCLOUD_MYSQL_USER:-nextcloud}
+      MYSQL_PASSWORD: ${NEXTCLOUD_MYSQL_PASSWORD}
+    labels:
+      traefik.http.routers.nextcloud.rule: "Host(`${NEXTCLOUD_DOMAIN:-cloud.local.freeitathens.org}`)"
+      traefik.http.routers.nextcloud.entrypoints: websecure
+      traefik.http.routers.nextcloud.tls: true
+      traefik.http.routers.nextcloud.tls.certresolver: letsencrypt
+      traefik.http.routers.nextcloud.tls.domains[0].main: ${TRAEFIK_ACME_DOMAIN_MAIN:-local.freeitathens.org}
+      traefik.http.routers.nextcloud.tls.domains[0].sans: "${TRAEFIK_ACME_DOMAIN_SANS:-*.local.freeitathens.org}"
+      traefik.http.services.nextcloud.loadbalancer.server.port: 80
+      traefik.http.middlewares.nextcloud-webdav.redirectregex.regex: "https://(.*)/.well-known/(card|cal)dav"
+      traefik.http.middlewares.nextcloud-webdav.redirectregex.replacement: "https://$${1}/remote.php/dav/"
+      traefik.http.middlewares.nextcloud-webdav.redirectregex.permanent: true
+      traefik.http.routers.nextcloud.middlewares: nextcloud-webdav
+      traefik.docker.network: traefik
+      traefik.enable: ${NEXTCLOUD_WEB_ENABLED:-true}
+    volumes:
+      - nextcloud:/var/www/html
     networks:
       - traefik
     extra_hosts:
