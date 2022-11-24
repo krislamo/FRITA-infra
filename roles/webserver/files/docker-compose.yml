@@ -3,10 +3,13 @@ version: '3.5'
 volumes:
   wordpress:
   nextcloud:
+  postgres:
 
 networks:
   traefik:
     name: traefik
+  postgres:
+    name: postgres
 
 services:
   traefik:
@@ -108,3 +111,36 @@ services:
       - traefik
     extra_hosts:
       - host.docker.internal:host-gateway
+
+  timetrex:
+    image: freeitathens/timetrex:${TIMETREX_VERSION:-latest}
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST: postgres
+    links:
+      - postgres
+    labels:
+      traefik.http.routers.timetrex.rule: "Host(`${TIMETREX_DOMAIN:-time.local.freeitathens.org}`)"
+      traefik.http.routers.timetrex.entrypoints: websecure
+      traefik.http.routers.timetrex.tls: true
+      traefik.http.routers.timetrex.tls.certresolver: letsencrypt
+      traefik.http.routers.timetrex.tls.domains[0].main: ${TRAEFIK_ACME_DOMAIN_MAIN:-local.freeitathens.org}
+      traefik.http.routers.timetrex.tls.domains[0].sans: "${TRAEFIK_ACME_DOMAIN_SANS:-*.local.freeitathens.org}"
+      traefik.http.services.timetrex.loadbalancer.server.port: 80
+      traefik.docker.network: traefik
+      traefik.enable: ${NEXTCLOUD_WEB_ENABLED:-true}
+    networks:
+      - postgres
+      - traefik
+
+  postgres:
+    image: postgres:13-bullseye
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: timetrex
+      POSTGRES_USER: timetrex
+      POSTGRES_PASSWORD: password
+    networks:
+      - postgres
