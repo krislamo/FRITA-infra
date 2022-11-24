@@ -10,6 +10,7 @@ and services operated by Free I.T. Athens (FRITA).
 3. Go to
     - [Traefik Dashboard](https://traefik.local.freeitathens.org:8443/dashboard/#/)
     - [WordPress](https://www.local.freeitathens.org)
+    - [Nextcloud](https://cloud.local.freeitathens.org)
 4. Click through the HTTPS security warning
 
 ## Production

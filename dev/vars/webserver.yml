@@ -3,9 +3,10 @@
 ###############
 # These are sample public passwords not encrypted in Ansible Vault, unlike production
 secret:
-  WORDPRESS_DB_PASSWORD: WPpa55w0rd!
-  NEXTCLOUD_MYSQL_PASSWORD: NCpa55w0rd!
   TRAEFIK_DREAMHOST_APIKEY: DHap1pa55w0rd!
+  WORDPRESS_DB_PASSWORD: WPpa55w0rd!
+  NEXTCLOUD_MYSQL_PASSWORD: NCdbpa55w0rd!
+  NEXTCLOUD_ADMIN_PASSWORD: NCadm1npa55w0rd!
 
 ##############
 ### Docker ###
@@ -49,9 +50,18 @@ webserver:
   #WORDPRESS_DB_HOST: host.docker.internal
   #WORDPRESS_DB_NAME: wordpress
   #WORDPRESS_DB_USER: wordpress
+  #WORDPRESS_WEB_ENABLED: true
   WORDPRESS_DB_PASSWORD: "{{ secret.WORDPRESS_DB_PASSWORD }}"
 
   #################
   ### Nextcloud ###
   #################
+  #NEXTCLOUD_VERSION: stable
+  #NEXTCLOUD_DOMAIN: cloud.local.freeitathens.org
+  #NEXTCLOUD_MYSQL_HOST: host.docker.internal
+  #NEXTCLOUD_MYSQL_DATABASE: nextcloud
+  #NEXTCLOUD_MYSQL_USER: nextcloud
+  #NEXTCLOUD_WEB_ENABLED: true
+  #NEXTCLOUD_ADMIN: admin
+  NEXTCLOUD_ADMIN_PASSWORD: "{{ secret.NEXTCLOUD_ADMIN_PASSWORD }}"
   NEXTCLOUD_MYSQL_PASSWORD: "{{ secret.NEXTCLOUD_MYSQL_PASSWORD }}"

@@ -24,9 +24,17 @@ Vagrant.configure("2") do |config|
   config.vm.define :frita do |frita| #
   end
 
-  # Disable Machine Name Prefix
+  # Set libvirt settings
   config.vm.provider :libvirt do |libvirt|
+    libvirt.cpus = 2
+    libvirt.memory = 4096
     libvirt.default_prefix = ""
+  end
+
+  # Set VirtualBox settings
+  config.vm.provider "virtualbox" do |vbox|
+    vbox.cpus = 2
+    vbox.memory = 4096
   end
 
   # Provision with Ansible

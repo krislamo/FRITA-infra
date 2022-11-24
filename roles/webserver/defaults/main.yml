@@ -1,4 +1,5 @@
 webserver_root: "{{ docker_compose_root }}/webserver"
+nextcloud_autoinstall: true
 mariadb_trust:
   - "172.16.0.0/12"
   - "192.168.0.0/16"

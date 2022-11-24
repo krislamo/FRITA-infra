@@ -1,0 +1,35 @@
+- name: Install Nextcloud
+  ansible.builtin.command: 'docker exec --user www-data {{ webserver_root | basename }}_nextcloud_1
+            php occ maintenance:install
+              --database "mysql"
+              --database-host "{{ webserver.NEXTCLOUD_MYSQL_HOST | default("host.docker.internal") }}"
+              --database-name "{{ webserver.NEXTCLOUD_MYSQL_DATABASE | default("nextcloud") }}"
+              --database-user "{{ webserver.NEXTCLOUD_MYSQL_USER | default("nextcloud") }}"
+              --database-pass "{{ webserver.NEXTCLOUD_MYSQL_PASSWORD }}"
+              --admin-user "{{ webserver.NEXTCLOUD_ADMIN | default("admin") }}"
+              --admin-pass "{{ webserver.NEXTCLOUD_ADMIN_PASSWORD }}"'
+  register: nextcloud_install
+  listen: composeup_webserver
+
+- name: Set Nextcloud's Trusted Domain
+  ansible.builtin.command: 'docker exec --user www-data {{ webserver_root | basename }}_nextcloud_1
+            php occ config:system:set trusted_domains 0
+              --value="{{ webserver.NEXTCLOUD_DOMAIN | default("cloud.local.freeitathens.org") }}"'
+  listen: composeup_webserver
+  when: nextcloud_install.changed
+
+- name: Set Nextcloud's Trusted Proxy
+  ansible.builtin.command: 'docker exec --user www-data {{ webserver_root | basename }}_nextcloud_1
+            php occ config:system:set trusted_proxies 0 --value="traefik"'
+  listen: composeup_webserver
+  when: nextcloud_install.changed
+
+- name: Preform Nextcloud database maintenance
+  ansible.builtin.command: "docker exec --user www-data {{ webserver_root | basename }}_nextcloud_1 {{ item }}"
+  loop:
+    - "php occ maintenance:mode --on"
+    - "php occ db:add-missing-indices"
+    - "php occ db:convert-filecache-bigint"
+    - "php occ maintenance:mode --off"
+  listen: composeup_webserver
+  when: "'  - needsDbUpgrade: true' in nextcloud_status.stdout_lines"
