@@ -31,6 +31,22 @@ and services operated by Free I.T. Athens (FRITA).
 
 5. Delete the `.ansible_vault` file when you are done
 
+### Using Ansible Vault to add or rotate values
+Do not submit ciphertext into Ansible Vault with the indention formatting.<br />
+To submit, press `CTRL+d` twice.
+
+- Decrypt Ansible Vault values
+
+    ```
+    ansible-vault decrypt --vault-pass-file .ansible_vault
+    ```
+
+- Encrypt new Ansible Vault values
+
+    ```
+    ansible-vault encrypt --vault-pass-file .ansible_vault
+    ```
+
 ## Authors
 * **Kris Lamoureux** - *Project Founder* - [@krislamo](https://github.com/krislamo)
 
