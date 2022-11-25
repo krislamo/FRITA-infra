@@ -46,6 +46,7 @@ To submit, press `CTRL+d` twice.
     ```
     ansible-vault encrypt --vault-pass-file .ansible_vault
     ```
+    - e.g., `pwgen -s 100 1 | ansible-vault encrypt --vault-pass-file .ansible_vault`
 
 ## Authors
 * **Kris Lamoureux** - *Project Founder* - [@krislamo](https://github.com/krislamo)
