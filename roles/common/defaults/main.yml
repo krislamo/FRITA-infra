@@ -1,2 +1,4 @@
 packages:
   - dnsutils
+  - ncdu
+  - tree
