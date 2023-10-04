@@ -26,7 +26,7 @@ and services operated by Free I.T. Athens (FRITA).
 4. Run `ansible-playbook` against the production servers, e.g.,
 
     ```
-    ansible-playbook -u root -i environments/production --vault-pass-file ./.ansible_vault webserver.yml --check
+    ansible-playbook -u root -i environments/production --vault-pass-file ./.ansible_vault webserver.yml --diff --check
     ```
 
 5. Delete the `.ansible_vault` file when you are done
