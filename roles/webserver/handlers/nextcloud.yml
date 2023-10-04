@@ -24,6 +24,15 @@
   listen: composeup_webserver
   when: nextcloud_install.changed
 
+- name: Install Nextcloud background jobs cron
+  ansible.builtin.cron:
+    name: Nextcloud background job
+    minute: "*/5"
+    job: "/usr/bin/docker exec -u www-data webserver_nextcloud_1 /usr/local/bin/php -f /var/www/html/cron.php"
+    user: root
+  listen: composeup_webserver
+  when: nextcloud_install.changed
+
 - name: Preform Nextcloud database maintenance
   ansible.builtin.command: "docker exec --user www-data {{ webserver_root | basename }}_nextcloud_1 {{ item }}"
   loop:
@@ -32,4 +41,4 @@
     - "php occ db:convert-filecache-bigint"
     - "php occ maintenance:mode --off"
   listen: composeup_webserver
-  when: "'  - needsDbUpgrade: true' in nextcloud_status.stdout_lines"
+  when: "'  - needsDbUpgrade: true' in nextcloud_status.stdout_lines or nextcloud_install.changed"
