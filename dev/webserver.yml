@@ -5,5 +5,5 @@
     - vars/webserver.yml
   roles:
     - common
-    - docker
+    - podman
     - webserver

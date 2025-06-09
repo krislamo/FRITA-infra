@@ -1,7 +1,9 @@
+SHELL := /bin/bash
+
 all: vagrant
 
 vagrant:
-	vagrant up --no-destroy-on-error --no-color | tee ./vagrantup.log
+	set -o pipefail; vagrant up --no-destroy-on-error --no-color | tee ./vagrantup.log
 	./scripts/forward-ssh.sh
 
 clean:

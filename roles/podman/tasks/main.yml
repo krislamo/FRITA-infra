@@ -1,0 +1,49 @@
+- name: Install Podman
+  ansible.builtin.dnf:
+    name: ["podman", "podman-docker", "podman-compose"]
+    state: present
+
+- name: Create /etc/containers/nodocker to quiet CLI emulation notice
+  ansible.builtin.file:
+    path: /etc/containers/nodocker
+    state: touch
+    mode: "644"
+
+- name: Create logind.conf.d directory
+  ansible.builtin.file:
+    path: /etc/systemd/logind.conf.d
+    state: directory
+    mode: "755"
+
+- name: Create linger directory
+  ansible.builtin.file:
+    path: /var/lib/systemd/linger
+    state: directory
+    mode: "755"
+
+- name: Enable lingering for oci user
+  ansible.builtin.file:
+    path: /var/lib/systemd/linger/oci
+    state: touch
+    mode: "644"
+  notify: Restart systemd-logind
+
+- name: Force handler execution for user lingering
+  ansible.builtin.meta: flush_handlers
+
+- name: Create user systemd directory
+  ansible.builtin.file:
+    path: "/home/oci/.config/systemd/user"
+    state: directory
+    mode: "755"
+    owner: oci
+    group: oci
+
+- name: Enable oci's podman socket
+  ansible.builtin.systemd:
+    name: podman.socket
+    enabled: true
+    state: started
+    scope: user
+  become_user: oci
+  become: true

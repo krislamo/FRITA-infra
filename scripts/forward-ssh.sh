@@ -8,7 +8,7 @@ MATCH_PATTERN="ssh -fNT -i ${PRIVATE_KEY}.*vagrant@"
 
 function ssh_connect {
   sudo ssh -fNT -i "$PRIVATE_KEY" \
-    -L 8443:localhost:8443 \
+    -L 9443:localhost:9443 \
     -L 80:localhost:80 \
     -L 443:localhost:443 \
     -o UserKnownHostsFile=/dev/null \

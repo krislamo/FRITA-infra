@@ -9,10 +9,14 @@ secret:
   NEXTCLOUD_ADMIN_PASSWORD: NCadm1npa55w0rd!
 
 ##############
-### Docker ###
+### Common ###
 ##############
-docker_users:
-  - vagrant
+users:
+  oci:
+    uid: 2000
+    gid: 2000
+    home: true
+    ansible_temp: true
 
 ################
 #### MariaDB ###
@@ -30,12 +34,12 @@ webserver:
   ###############
   ### Traefik ###
   ###############
-  #TRAEFIK_VERSION: latest
-  #TRAEFIK_ROOT_DOMAIN: local.freeitathens.org
-  #TRAEFIK_DOMAIN: traefik.local.freeitathens.org
-  #TRAEFIK_DASHBOARD: true
-  #TRAEFIK_EXPOSED_DEFAULT: false
-  #TRAEFIK_WEB_ENABLED: true
+  # TRAEFIK_VERSION: latest
+  # TRAEFIK_ROOT_DOMAIN: local.freeitathens.org
+  # TRAEFIK_DOMAIN: traefik.local.freeitathens.org
+  # TRAEFIK_DASHBOARD: true
+  # TRAEFIK_EXPOSED_DEFAULT: false
+  # TRAEFIK_WEB_ENABLED: true
   TRAEFIK_DEBUG: true
   TRAEFIK_ACME_PROVIDER: dreamhost
   TRAEFIK_ACME_CASERVER: https://localhost/directory
@@ -45,23 +49,23 @@ webserver:
   #################
   ### WordPress ###
   #################
-  #WORDPRESS_VERSION: latest
-  #WORDPRESS_DOMAIN: www.local.freeitathens.org
-  #WORDPRESS_DB_HOST: host.docker.internal
-  #WORDPRESS_DB_NAME: wordpress
-  #WORDPRESS_DB_USER: wordpress
-  #WORDPRESS_WEB_ENABLED: true
+  # WORDPRESS_VERSION: latest
+  # WORDPRESS_DOMAIN: www.local.freeitathens.org
+  # WORDPRESS_DB_HOST: host.docker.internal
+  # WORDPRESS_DB_NAME: wordpress
+  # WORDPRESS_DB_USER: wordpress
+  # WORDPRESS_WEB_ENABLED: true
   WORDPRESS_DB_PASSWORD: "{{ secret.WORDPRESS_DB_PASSWORD }}"
 
   #################
   ### Nextcloud ###
   #################
-  #NEXTCLOUD_VERSION: stable
-  #NEXTCLOUD_DOMAIN: cloud.local.freeitathens.org
-  #NEXTCLOUD_MYSQL_HOST: host.docker.internal
-  #NEXTCLOUD_MYSQL_DATABASE: nextcloud
-  #NEXTCLOUD_MYSQL_USER: nextcloud
-  #NEXTCLOUD_WEB_ENABLED: true
-  #NEXTCLOUD_ADMIN: admin
+  # NEXTCLOUD_VERSION: stable
+  # NEXTCLOUD_DOMAIN: cloud.local.freeitathens.org
+  # NEXTCLOUD_MYSQL_HOST: host.docker.internal
+  # NEXTCLOUD_MYSQL_DATABASE: nextcloud
+  # NEXTCLOUD_MYSQL_USER: nextcloud
+  # NEXTCLOUD_WEB_ENABLED: true
+  # NEXTCLOUD_ADMIN: admin
   NEXTCLOUD_ADMIN_PASSWORD: "{{ secret.NEXTCLOUD_ADMIN_PASSWORD }}"
   NEXTCLOUD_MYSQL_PASSWORD: "{{ secret.NEXTCLOUD_MYSQL_PASSWORD }}"

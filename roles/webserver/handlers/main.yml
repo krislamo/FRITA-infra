@@ -1,14 +1,38 @@
+- name: Restart nginx
+  ansible.builtin.systemd:
+    name: nginx
+    state: restarted
+
 - name: Restart MariaDB
   ansible.builtin.service:
     name: mariadb
     state: restarted
   listen: restart_mariadb
 
-- name: Compose up on webserver stack
-  ansible.builtin.command: "docker-compose up -d"
-  args:
-    chdir: "{{ webserver_root }}"
-  listen: composeup_webserver
+- name: Start podman compose project
+  ansible.builtin.command:
+    cmd: podman compose up -d
+    chdir: "/home/oci/webserver"
+  notify: Generate systemd service files
+  changed_when: false
+  become_user: oci
+  become: true
+
+- name: Reload systemd user daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+    scope: user
+  notify: Enable systemd user service
+  become_user: oci
+  become: true
+
+- name: Enable systemd user service
+  ansible.builtin.systemd:
+    name: webserver
+    enabled: true
+    scope: user
+  become_user: oci
+  become: true
 
 - name: Grab Nextcloud container information
   community.docker.docker_container_info:
@@ -23,8 +47,9 @@
   listen: composeup_webserver
 
 - name: Check Nextcloud status
-  ansible.builtin.command: "docker exec --user www-data {{ webserver_root | basename }}_nextcloud_1
-            php occ status"
+  ansible.builtin.command:
+    "docker exec --user www-data {{ webserver_root | basename }}_nextcloud_1
+    php occ status"
   listen: composeup_webserver
   register: nextcloud_status
 
@@ -34,3 +59,12 @@
   when:
     - nextcloud_status.stderr[:26] == "Nextcloud is not installed"
     - nextcloud_autoinstall
+
+- name: Install webserver docker-compose.yml
+  ansible.builtin.copy:
+    src: docker-compose.yml
+    dest: /home/oci/webserver/compose.yml
+    mode: "600"
+    owner: oci
+    group: oci
+  notify: Generate systemd service files

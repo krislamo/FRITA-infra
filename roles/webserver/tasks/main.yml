@@ -1,72 +1,96 @@
 - name: Install MariaDB Server
-  ansible.builtin.apt:
+  ansible.builtin.dnf:
     name: mariadb-server
     state: present
 
 - name: Change the bind-address to allow Docker
   ansible.builtin.lineinfile:
-    path: /etc/mysql/mariadb.conf.d/50-server.cnf
+    path: /etc/my.cnf.d/mariadb-server.cnf
     regex: "^bind-address"
     line: "bind-address            = 0.0.0.0"
   notify: restart_mariadb
 
+- name: Start and enable MariaDB service
+  ansible.builtin.systemd:
+    name: mariadb
+    state: started
+    enabled: true
+
 - name: Install MySQL Support for Python 3
-  ansible.builtin.apt:
-    name: python3-pymysql
+  ansible.builtin.dnf:
+    name: python3-PyMySQL
     state: present
 
 - name: Create MariaDB databases
   community.mysql.mysql_db:
     name: "{{ item.name }}"
     state: present
-    login_unix_socket: /var/run/mysqld/mysqld.sock
+    login_unix_socket: /var/lib/mysql/mysql.sock
   loop: "{{ databases }}"
-  no_log: "{{ item.pass is defined }}"
+  no_log: true
 
 - name: Create MariaDB users
   community.mysql.mysql_user:
     name: "{{ item.name }}"
     password: "{{ item.pass }}"
-    host: '%'
+    host: "%"
     state: present
     priv: "{{ item.name }}.*:ALL"
-    login_unix_socket: /var/run/mysqld/mysqld.sock
+    login_unix_socket: /var/lib/mysql/mysql.sock
   loop: "{{ databases }}"
-  no_log: "{{ item.pass is defined }}"
+  no_log: true
 
-- name: Create webserver docker-compose directory
+- name: Create webserver stack directory
   ansible.builtin.file:
-    path: "{{ webserver_root }}"
+    path: /home/oci/webserver
     state: directory
-    mode: 0600
+    mode: "700"
+    owner: oci
+    group: oci
 
-- name: Install webserver docker-compose.yml
+- name: Install webserver compose file
   ansible.builtin.copy:
     src: docker-compose.yml
-    dest: "{{ webserver_root }}/docker-compose.yml"
-    mode: 0600
-  notify: composeup_webserver
+    dest: /home/oci/webserver/compose.yml
+    mode: "600"
+    owner: oci
+    group: oci
+  notify: Start podman compose project
 
-- name: Install docker-compose .env
+- name: Generate webserver environment configuration
   ansible.builtin.template:
     src: compose-env.j2
-    dest: "{{ webserver_root }}/.env"
-    mode: 0600
-  notify: composeup_webserver
+    dest: /home/oci/webserver/.env
+    mode: "400"
+    owner: oci
+    group: oci
+  notify: Start podman compose project
 
-- name: Allow MariaDB database connections
-  community.general.ufw:
-    rule: allow
-    port: 3306
-    proto: tcp
-    src: "{{ item }}"
-  loop: "{{ mariadb_trust }}"
+- name: Install nginx
+  ansible.builtin.dnf:
+    name: ["nginx", "nginx-mod-stream"]
+    state: present
+    update_cache: true
 
-- name: Add HTTP and HTTPS firewall rule
-  community.general.ufw:
-    rule: allow
-    port: "{{ item }}"
-    proto: tcp
+- name: Deploy nginx proxy config
+  ansible.builtin.copy:
+    src: nginx.conf
+    dest: /etc/nginx/nginx.conf
+    mode: "644"
+  notify: Restart nginx
+
+- name: Allow HTTP and HTTPS in firewall
+  ansible.posix.firewalld:
+    service: "{{ item }}"
+    permanent: true
+    state: enabled
+    immediate: true
   loop:
-    - "80"
-    - "443"
+    - http
+    - https
+
+- name: Start and enable nginx
+  ansible.builtin.systemd:
+    name: nginx
+    state: started
+    enabled: true

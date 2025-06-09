@@ -1,4 +1,4 @@
-.ansible_vault
+.ansible*
 .bitwarden
 environments
 *.log
