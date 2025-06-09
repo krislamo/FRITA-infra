@@ -60,7 +60,7 @@ services:
       WORDPRESS_DB_USER: ${WORDPRESS_DB_USER:-wordpress}
       WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
     labels:
-      traefik.http.routers.wordpress.rule: Host(`${WORDPRESS_DOMAIN:-www.local.freeitathens.org}`,`${TRAEFIK_ACME_DOMAIN_MAIN:-local.freeitathens.org}`)
+      traefik.http.routers.wordpress.rule: Host(`${WORDPRESS_DOMAIN:-www.local.freeitathens.org}`) || Host(`${TRAEFIK_ACME_DOMAIN_MAIN:-local.freeitathens.org}`)
       traefik.http.routers.wordpress.entrypoints: websecure
       traefik.http.routers.wordpress.middlewares: "wwwredirect"
       traefik.http.routers.wordpress.tls: true

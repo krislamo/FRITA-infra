@@ -72,6 +72,12 @@
     state: present
     update_cache: true
 
+- name: Allow nginx to make network connections
+  ansible.posix.seboolean:
+    name: httpd_can_network_connect
+    state: true
+    persistent: true
+
 - name: Deploy nginx proxy config
   ansible.builtin.copy:
     src: nginx.conf
