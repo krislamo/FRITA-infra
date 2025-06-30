@@ -1,6 +1,7 @@
 volumes:
   wordpress:
   nextcloud:
+  mediawiki:
 
 networks:
   traefik:
@@ -60,7 +61,9 @@ services:
       WORDPRESS_DB_USER: ${WORDPRESS_DB_USER:-wordpress}
       WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
     labels:
-      traefik.http.routers.wordpress.rule: Host(`${WORDPRESS_DOMAIN:-www.local.freeitathens.org}`) || Host(`${TRAEFIK_ACME_DOMAIN_MAIN:-local.freeitathens.org}`)
+      traefik.http.routers.wordpress.rule:
+        Host(`${WORDPRESS_DOMAIN:-www.local.freeitathens.org}`) ||
+        Host(`${TRAEFIK_ACME_DOMAIN_MAIN:-local.freeitathens.org}`)
       traefik.http.routers.wordpress.entrypoints: websecure
       traefik.http.routers.wordpress.middlewares: "wwwredirect"
       traefik.http.routers.wordpress.tls: true
@@ -104,6 +107,27 @@ services:
       traefik.enable: ${NEXTCLOUD_WEB_ENABLED:-true}
     volumes:
       - nextcloud:/var/www/html
+    networks:
+      - traefik
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+  mediawiki:
+    image: ${MEDIAWIKI_IMAGE:-docker.io/library/mediawiki}:${MEDIAWIKI_VERSION:-stable}
+    restart: always
+    labels:
+      traefik.http.routers.mediawiki.rule: "Host(`${MEDIAWIKI_DOMAIN:-wiki.local.freeitathens.org}`)"
+      traefik.http.routers.mediawiki.entrypoints: websecure
+      traefik.http.routers.mediawiki.tls: true
+      traefik.http.routers.mediawiki.tls.certresolver: letsencrypt
+      traefik.http.routers.mediawiki.tls.domains[0].main: ${TRAEFIK_ACME_DOMAIN_MAIN:-local.freeitathens.org}
+      traefik.http.routers.mediawiki.tls.domains[0].sans: "${TRAEFIK_ACME_DOMAIN_SANS:-*.local.freeitathens.org}"
+      traefik.http.services.mediawiki.loadbalancer.server.port: 80
+      traefik.docker.network: traefik
+      traefik.enable: ${MEDIAWIKI_WEB_ENABLED:-true}
+    volumes:
+      - ./LocalSettings.php:/var/www/html/LocalSettings.php
+      - mediawiki:/var/www/html/images
     networks:
       - traefik
     extra_hosts:

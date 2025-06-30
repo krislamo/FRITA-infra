@@ -7,6 +7,7 @@ secret:
   WORDPRESS_DB_PASSWORD: WPpa55w0rd!
   NEXTCLOUD_MYSQL_PASSWORD: NCdbpa55w0rd!
   NEXTCLOUD_ADMIN_PASSWORD: NCadm1npa55w0rd!
+  MEDIAWIKI_MYSQL_PASSWORD: MWdbpa55w0rd!
 
 ##############
 ### Common ###
@@ -26,6 +27,8 @@ databases:
     pass: "{{ secret.WORDPRESS_DB_PASSWORD }}"
   - name: nextcloud
     pass: "{{ secret.NEXTCLOUD_MYSQL_PASSWORD }}"
+  - name: mediawiki
+    pass: "{{ secret.MEDIAWIKI_MYSQL_PASSWORD }}"
 
 #######################
 ### Webserver Stack ###
@@ -69,3 +72,9 @@ webserver:
   # NEXTCLOUD_ADMIN: admin
   NEXTCLOUD_ADMIN_PASSWORD: "{{ secret.NEXTCLOUD_ADMIN_PASSWORD }}"
   NEXTCLOUD_MYSQL_PASSWORD: "{{ secret.NEXTCLOUD_MYSQL_PASSWORD }}"
+
+  #################
+  ### MediaWiki ###
+  #################
+  # MEDIAWIKI_VERSION: stable
+  # MEDIAWIKI_DOMAIN: wiki.local.freeitathens.org

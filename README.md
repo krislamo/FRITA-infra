@@ -13,18 +13,21 @@ and services operated by Free I.T. Athens (FRITA).
    - [Traefik Dashboard](https://traefik.local.freeitathens.org:9443/dashboard/#/)
    - [WordPress](https://www.local.freeitathens.org)
    - [Nextcloud](https://cloud.local.freeitathens.org)
+   - [Mediawiki](https://wiki.local.freeitathens.org)
 4. Click through the HTTPS security warning
 
 ## Production
 
-1. Clone [production-env](https://github.com/freeitathens/production-env/) to `./environments`
+1. Clone [production-env](https://github.com/freeitathens/production-env/) to
+   `./environments`
 
    ```
    mkdir -p environments
    git clone git@github.com:freeitathens/production-env.git ./environments
    ```
 
-2. Run `./scripts/vault-key.sh` from the root of the project to obtain the Ansible Vault password
+2. Run `./scripts/vault-key.sh` from the root of the project to obtain the
+   Ansible Vault password
 3. Enter the Bitwarden Master Password
 4. Run `ansible-playbook` against the production servers, e.g.,
 
@@ -51,11 +54,13 @@ To submit, press `CTRL+d` twice.
   ansible-vault encrypt --vault-pass-file .ansible_vault
   ```
 
-  - e.g., `pwgen -s 100 1 | ansible-vault encrypt --vault-pass-file .ansible_vault`
+  - e.g.,
+    `pwgen -s 100 1 | ansible-vault encrypt --vault-pass-file .ansible_vault`
 
 ## Authors
 
-- **Kris Lamoureux** - _Project Founder_ - [@krislamo](https://github.com/krislamo)
+- **Kris Lamoureux** - _Project Founder_ -
+  [@krislamo](https://github.com/krislamo)
 
 ## Copyrights and Licenses
 
@@ -65,9 +70,9 @@ This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
 Foundation, version 3 of the License.
 
-This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
 this program. If not, see <https://www.gnu.org/licenses/>.
