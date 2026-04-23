@@ -1,0 +1,117 @@
+- name: Install nginx
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+    update_cache: true
+
+- name: Install nginx base configuration
+  ansible.builtin.file:
+    src: nginx.conf
+    dest: /etc/nginx/nginx.conf
+    mode: "644"
+  notify: reload_nginx
+
+- name: Install nginx sites configuration
+  ansible.builtin.template:
+    src: server.conf.j2
+    dest: "/etc/nginx/conf.d/{{ item.domain }}.conf"
+    mode: "644"
+  loop: "{{ proxy.servers }}"
+  loop_control:
+    label: "{{ item.domain }}"
+  notify: reload_nginx
+  register: nginx_sites
+
+- name: Generate self-signed certificate
+  ansible.builtin.command:
+    'openssl req -newkey rsa:4096 -x509 -sha256 -days 3650 -nodes \
+    -subj   "/C=US/ST=Local/L=Local/O=Org/OU=IT/CN=example.com" \
+    -keyout /etc/ssl/private/nginx-selfsigned.key \
+    -out    /etc/ssl/certs/nginx-selfsigned.crt'
+  args:
+    creates: /etc/ssl/certs/nginx-selfsigned.crt
+  when: proxy.production is not defined or not proxy.production
+  notify: reload_nginx
+
+- name: Install LE's certbot
+  ansible.builtin.apt:
+    name: ["certbot", "python3-certbot-dns-cloudflare"]
+    state: present
+  when: proxy.production is defined and proxy.production
+
+- name: Grab Cloudflare API token for configuration
+  ansible.builtin.slurp:
+    src: /etc/letsencrypt/cloudflare-api.key
+  register: cfapi
+  when: proxy.production is defined and proxy.production and proxy.dns_cloudflare is defined
+
+- name: Install Cloudflare API token
+  ansible.builtin.template:
+    src: cloudflare.ini.j2
+    dest: /etc/letsencrypt/cloudflare.ini
+    mode: "400"
+  diff: false
+  when: proxy.production is defined and proxy.production and proxy.dns_cloudflare is defined
+
+- name: Create nginx post renewal hook directory
+  ansible.builtin.file:
+    path: /etc/letsencrypt/renewal-hooks/post
+    state: directory
+    mode: "500"
+  when: proxy.production is defined and proxy.production
+
+- name: Install nginx post renewal hook
+  ansible.builtin.copy:
+    src: reload-nginx.sh
+    dest: /etc/letsencrypt/renewal-hooks/post/reload-nginx.sh
+    mode: "0755"
+  when: proxy.production is defined and proxy.production
+
+- name: Enable SELinux bool certbot_acmesh to allow sh access for DNS-01
+  ansible.posix.seboolean:
+    name: certbot_acmesh
+    state: true
+    persistent: true
+  when:
+    - selinux is defined
+    - selinux is not false
+    - proxy is defined
+    - proxy.production is defined
+    - proxy.production
+    - proxy.dns_cloudflare is defined
+
+- name: Run Cloudflare DNS-01 challenges on wildcard domains
+  ansible.builtin.shell: '/usr/bin/certbot certonly \
+    --non-interactive \
+    --agree-tos \
+    --email "{{ proxy.dns_cloudflare.email }}" \
+    --dns-cloudflare \
+    --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini \
+    -d "*.{{ item }}" \
+    -d "{{ item }}" \
+    {{ proxy.dns_cloudflare.opts | default("") }}
+    < /dev/null'
+  args:
+    creates: "/etc/letsencrypt/live/{{ item }}/fullchain.pem"
+  loop: "{{ proxy.dns_cloudflare.wildcard_domains }}"
+  when: proxy.production is defined and proxy.production and proxy.dns_cloudflare is defined
+  notify: reload_nginx
+
+- name: Enable SELinux bool httpd_can_network_connect to give nginx networking
+  ansible.posix.seboolean:
+    name: httpd_can_network_connect
+    state: true
+    persistent: true
+  when:
+    - selinux is defined
+    - selinux is not false
+    - proxy is defined
+
+- name: Add HTTP and HTTPS firewall rule
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - "80"
+    - "443"
