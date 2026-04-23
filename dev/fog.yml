@@ -1,0 +1,8 @@
+- name: Install FRITA FOG Server
+  hosts: all
+  become: true
+  vars_files:
+    - vars/fog.yml
+  roles:
+    - common
+    - fog

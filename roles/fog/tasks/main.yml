@@ -1,0 +1,53 @@
+- name: Check if FOG is already installed
+  ansible.builtin.stat:
+    path: /opt/fog/.fogsettings
+  register: fog_installed
+
+- name: Upgrade system before FOG server install
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest # noqa: package-latest
+  when: not fog_installed.stat.exists
+
+- name: Install git
+  ansible.builtin.dnf:
+    name: git
+    state: present
+
+- name: Set SELinux to permissive and make it persistent
+  ansible.posix.selinux:
+    policy: targeted
+    state: permissive
+
+- name: Ensure parent source directory exists
+  ansible.builtin.file:
+    path: /usr/local/src
+    state: directory
+    mode: "0755"
+
+- name: Clone FOG stable branch
+  ansible.builtin.git:
+    repo: https://github.com/FOGProject/fogproject.git
+    dest: /usr/local/src/fogproject
+    version: stable
+    update: true
+
+- name: Run FOG installer first time
+  ansible.builtin.command: ./installfog.sh -Y
+  args:
+    chdir: /usr/local/src/fogproject/bin
+    creates: /opt/fog/.fogsettings
+
+- name: Allow required FOG firewall ports
+  ansible.posix.firewalld:
+    port: "{{ item }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  loop:
+    - 80/tcp
+    - 69/udp
+    - 111/tcp
+    - 111/udp
+    - 2049/tcp
+    - 2049/udp
