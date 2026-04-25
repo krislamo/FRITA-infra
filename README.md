@@ -64,7 +64,7 @@ To submit, press `CTRL+d` twice.
 
 ## Copyrights and Licenses
 
-Copyright (C) 2019, 2020, 2022, 2023, 2025 Free I.T. Athens
+Copyright (C) 2019, 2020, 2022, 2023, 2025, 2026 Free I.T. Athens
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software

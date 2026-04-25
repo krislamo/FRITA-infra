@@ -56,33 +56,51 @@
     state: present
     update_cache: true
 
+- name: Assert valid firewalld config
+  ansible.builtin.assert:
+    that:
+      - firewalld is mapping
+      - firewalld.type is defined
+      - firewalld.type in ['simple', 'complex']
+    fail_msg: "firewalld.type must be 'simple' or 'complex'"
+  when: firewalld is defined
+
 - name: Install firewalld
   ansible.builtin.dnf:
     name: firewalld
     state: present
+  when: firewalld is defined
 
 - name: Start and enable firewalld service
   ansible.builtin.systemd:
     name: firewalld
     state: started
     enabled: true
+  when: firewalld is defined
 
-- name: Set default zone to drop (deny incoming by default)
-  ansible.posix.firewalld:
-    zone: drop
-    state: enabled
-    permanent: true
-    immediate: true
-
-- name: Allow SSH in drop zone with rate limiting via rich rule
+- name: Update SSH rule in firewalld drop zone
   ansible.posix.firewalld:
     zone: drop
     rich_rule: 'rule service name="ssh" accept limit value="10/m"'
     permanent: true
     immediate: true
-    state: enabled
+    state: "{{ 'enabled' if (firewalld.drop_ssh | default(true)) else 'disabled' }}"
+  when: firewalld is defined
 
 - name: Set drop as the default zone
   ansible.builtin.command:
     cmd: firewall-cmd --set-default-zone=drop
-  changed_when: false
+  register: default_zone_result
+  changed_when: "'ZONE_ALREADY_SET' not in default_zone_result.stderr"
+  when: firewalld is defined
+
+- name: Install Cockpit
+  ansible.builtin.dnf:
+    name: cockpit
+    state: present
+
+- name: Enable and start Cockpit socket
+  ansible.builtin.systemd:
+    name: cockpit.socket
+    enabled: true
+    state: started

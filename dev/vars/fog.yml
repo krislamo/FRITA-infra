@@ -1,0 +1,33 @@
+###################
+### common role ###
+###################
+
+firewalld:
+  # Turn 'drop' zone SSH access off after initial provision
+  # This example config defines an 'admin' zone for it instead
+  # drop_ssh: false
+  type: complex
+  zones:
+    admin:
+      source: 192.168.121.0/24
+      services:
+        - ssh
+        - cockpit
+        - http
+    fog:
+      interface: eth1
+      services:
+        - http
+      ports:
+        - 69/udp
+        - 111/tcp
+        - 111/udp
+        - 2049/tcp
+        - 2049/udp
+
+################
+### fog role ###
+################
+
+fog:
+  version: 1.5.10.1826 # defaults to stable

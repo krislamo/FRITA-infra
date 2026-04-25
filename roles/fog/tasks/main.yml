@@ -25,11 +25,11 @@
     state: directory
     mode: "0755"
 
-- name: Clone FOG stable branch
+- name: Clone FOG at specified version
   ansible.builtin.git:
     repo: https://github.com/FOGProject/fogproject.git
     dest: /usr/local/src/fogproject
-    version: stable
+    version: "{{ fog.version | default('stable') }}"
     update: true
 
 - name: Run FOG installer first time
@@ -38,16 +38,88 @@
     chdir: /usr/local/src/fogproject/bin
     creates: /opt/fog/.fogsettings
 
-- name: Allow required FOG firewall ports
+- name: Create admin zone
   ansible.posix.firewalld:
+    zone: admin
+    state: present
+    permanent: true
+  register: admin_zone
+  when:
+    - firewalld is defined
+    - firewalld.type == 'complex'
+
+- name: Create fog zone
+  ansible.posix.firewalld:
+    zone: fog
+    state: present
+    permanent: true
+  register: fog_zone
+  when:
+    - firewalld is defined
+    - firewalld.type == 'complex'
+
+- name: Reload firewalld if zones were created
+  ansible.builtin.command: firewall-cmd --reload
+  changed_when: true
+  when:
+    - firewalld is defined
+    - firewalld.type == 'complex'
+    - admin_zone.changed or fog_zone.changed
+
+- name: Bind admin source to admin zone
+  ansible.posix.firewalld:
+    zone: admin
+    source: "{{ firewalld.zones.admin.source }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  when:
+    - firewalld is defined
+    - firewalld.type == 'complex'
+
+- name: Bind fog interface to fog zone
+  ansible.posix.firewalld:
+    zone: fog
+    interface: "{{ firewalld.zones.fog.interface }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  when:
+    - firewalld is defined
+    - firewalld.type == 'complex'
+
+- name: Allow admin services
+  ansible.posix.firewalld:
+    zone: admin
+    service: "{{ item }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  loop: "{{ firewalld.zones.admin.services | default([]) }}"
+  when:
+    - firewalld is defined
+    - firewalld.type == 'complex'
+
+- name: Allow fog services
+  ansible.posix.firewalld:
+    zone: fog
+    service: "{{ item }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  loop: "{{ firewalld.zones.fog.services | default([]) }}"
+  when:
+    - firewalld is defined
+    - firewalld.type == 'complex'
+
+- name: Allow fog ports
+  ansible.posix.firewalld:
+    zone: fog
     port: "{{ item }}"
     permanent: true
     immediate: true
     state: enabled
-  loop:
-    - 80/tcp
-    - 69/udp
-    - 111/tcp
-    - 111/udp
-    - 2049/tcp
-    - 2049/udp
+  loop: "{{ firewalld.zones.fog.ports | default([]) }}"
+  when:
+    - firewalld is defined
+    - firewalld.type == 'complex'
