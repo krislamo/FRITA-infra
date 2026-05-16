@@ -1,17 +1,17 @@
 # vi: set ft=ruby :
 
 # Set PLAYBOOK shell var for ./dev/playbook.yml
-PLAYBOOK=ENV["PLAYBOOK"]
-if !PLAYBOOK
+playbook=ENV["PLAYBOOK"]
+if !playbook
   if File.exist?('.playbook')
-    PLAYBOOK = IO.read('.playbook').split("\n")[0]
+    playbook = IO.read('.playbook').split("\n")[0]
   end
 
-  if !PLAYBOOK || PLAYBOOK.empty?
-    PLAYBOOK = "webserver"
+  if !playbook || playbook.empty?
+    playbook = "webserver"
   end
 else
-  File.write(".playbook", PLAYBOOK)
+  File.write(".playbook", playbook)
 end
 
 # Optionally allow more verbosity in Ansible
